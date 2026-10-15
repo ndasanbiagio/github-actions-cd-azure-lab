@@ -1,13 +1,33 @@
-name: Stage the app
+name: Deploy to staging
 
 on:
   pull_request:
     types: [labeled]
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    if: contains(github.event.pull_request.labels.*.name, 'stage')
     runs-on: ubuntu-latest
 
-    if: contains(github.event.pull_request.labels.*.name, 'stage')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-# Staging workflow exercise
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: webpack-artifacts
+          path: public/
